@@ -4,3 +4,6 @@
 neovim
 ripgrep
 stow
+curl
+unzip
+fontconfig

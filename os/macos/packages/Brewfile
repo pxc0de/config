@@ -4,9 +4,12 @@ brew "ripgrep"
 brew "tmux"
 brew "starship"
 
+# Fonts
+cask "font-jetbrains-mono-nerd-font"
 
 cask "ghostty"
 cask "zed"
 cask "cursor"
 cask "visual-studio-code"
 cask "google-chrome"
+cask "cursor-cli"

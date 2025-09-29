@@ -19,3 +19,5 @@ local opts = { noremap = true, silent = true }
 keymap('n', 'U', '<C-r>', opts)
 -- find files with leader ff
 keymap({'n', 'v'}, '<leader>ff', "<cmd>lua require('vscode').action('workbench.action.quickOpen')<cr>", opts)
+-- leader e to focus on explorer
+keymap('n', '<leader>e', "<cmd>lua require('vscode').action('workbench.view.explorer')<cr>", opts)
