@@ -1,0 +1,1 @@
+This `init.lua` is for VSCode Neovim extention.

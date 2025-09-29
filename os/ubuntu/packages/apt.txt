@@ -1,0 +1,6 @@
+# APT packages for Ubuntu dotfiles setup
+# One package per line
+
+neovim
+ripgrep
+stow

@@ -1,0 +1,12 @@
+brew "stow"
+brew "neovim"
+brew "ripgrep"
+brew "tmux"
+brew "starship"
+
+
+cask "ghostty"
+cask "zed"
+cask "cursor"
+cask "visual-studio-code"
+cask "google-chrome"

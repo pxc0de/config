@@ -1,0 +1,67 @@
+# Stow ignore patterns
+
+# Version control
+\.git$
+\.gitignore$
+\.gitkeep$
+
+# Documentation
+README\.md$
+readme\.md$
+README\.txt$
+
+# Build artifacts
+Makefile$
+makefile$
+
+# OS files
+\.DS_Store$
+Thumbs\.db$
+desktop\.ini$
+
+# Temporary files
+~$
+\.tmp$
+\.temp$
+
+# Logs
+\.log$
+\.logs$
+
+# Node modules (if any)
+node_modules$
+
+# Python cache
+__pycache__$
+\.pyc$
+
+# Editor files
+\.swp$
+\.swo$
+\.vim$
+
+setup.sh
+install.sh
+uninstall.sh
+
+RCS
+.+,v
+
+CVS
+\.\#.+       # CVS conflict files / emacs lock files
+\.cvsignore
+
+\.svn
+_darcs
+\.hg
+
+\.git
+\.gitignore
+\.gitmodules
+
+.+~          # emacs backup files
+\#.*\#       # emacs autosave files
+
+^/README.*
+^/LICENSE.*
+^/COPYING

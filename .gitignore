@@ -1,0 +1,94 @@
+# Secrets and sensitive data
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+id_rsa
+id_ed25519
+id_ecdsa
+.ssh/
+.gnupg/
+.password-store/
+*.keychain
+keychain-db
+.netrc
+.authinfo
+.credentials
+.aws/credentials
+.gcp/
+.azure/
+.kube/config
+.docker/config.json
+.npmrc
+.pypirc
+.gem/credentials
+.cargo/credentials
+.gitconfig.local
+.env*
+!.env.example
+!.env.template
+.secrets
+secrets.*
+auth.json
+token*
+!token.example
+api_key*
+!api_key.example
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp
+
+# Cache
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Local environment
+.env
+.env.local
+
+# Package manager artifacts
+node_modules/
+.npm/
+.yarn/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Personal customizations that shouldn't be shared
+local/
+personal/

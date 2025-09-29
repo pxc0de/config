@@ -1,0 +1,41 @@
+# Theme settings
+# theme = catppuccin-mocha
+# I use pure dark background so theme is kind of useless
+background = #000000
+foreground = #27ff00
+background-opacity = 0.90
+background-blur-radius = 20
+bold-is-bright = true
+
+# window settings
+macos-titlebar-style = hidden
+window-decoration = true
+window-theme = auto
+window-padding-color = background
+window-padding-x = 0
+window-padding-y = 2
+window-padding-balance = false
+window-colorspace = display-p3
+adjust-cell-height = 10%
+adjust-cell-width = 2%
+fullscreen = true
+
+macos-icon = custom-style
+macos-icon-frame = plastic
+macos-icon-ghost-color = #F81CE5
+macos-icon-screen-color = #F81CE5
+
+# Font settings
+font-family = IosevkaTerm Nerd Font Mono
+# font-family = JetBrainsMono Nerd Font
+# font-family = MonaspiceAr Nerd Font
+font-size = 18
+cursor-color = #FFA500
+font-feature = +liga
+cursor-style = block
+# I am used of of thick fonts
+font-thicken = true
+
+clipboard-read = allow
+clipboard-write = allow
+clipboard-trim-trailing-spaces = true
