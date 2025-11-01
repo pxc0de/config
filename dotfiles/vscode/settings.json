@@ -16,6 +16,7 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
+  "workbench.iconTheme": "material-icon-theme",
   "workbench.editor.enablePreview": false,
   "files.autoSave": "onFocusChange",
   "files.trimTrailingWhitespace": true,
@@ -39,4 +40,10 @@
   "scm.inputFontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', monospace",
   "markdown.preview.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', sans-serif",
   "telemetry.telemetryLevel": "off",
+  "amp.url": "https://ampcode.com/",
+  "editor.wordBasedSuggestions": "off",
+  "amp.tab.enabled": false,
+  "cursor.cpp.disabledLanguages": [
+    "plaintext"
+  ]
 }
