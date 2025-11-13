@@ -7,10 +7,8 @@
   "editor.minimap.enabled": false,
   "editor.lineNumbers": "on",
   "editor.tabSize": 4,
-  "editor.rulers": [
-    80,
-    120
-  ],
+  "editor.rulers": [80, 120],
+
   "editor.renderWhitespace": "boundary",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
@@ -43,7 +41,5 @@
   "amp.url": "https://ampcode.com/",
   "editor.wordBasedSuggestions": "off",
   "amp.tab.enabled": false,
-  "cursor.cpp.disabledLanguages": [
-    "plaintext"
-  ]
+  "cursor.cpp.disabledLanguages": ["plaintext"]
 }
