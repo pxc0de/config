@@ -92,3 +92,7 @@ out/
 # Personal customizations that shouldn't be shared
 local/
 personal/
+
+dotfiles/zed/.config/zed/conversations/
+dotfiles/zed/.config/zed/prompts/*
+dotfiles/zed/.config/zed/prompts/prompts-library-db.0.mdb/lock.mdb

@@ -2,9 +2,7 @@ brew "stow"
 brew "neovim"
 brew "ripgrep"
 brew "tmux"
-brew "starship"
 
-# Fonts
 cask "font-jetbrains-mono-nerd-font"
 
 cask "ghostty"

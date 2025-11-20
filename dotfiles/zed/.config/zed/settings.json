@@ -15,5 +15,6 @@
     "mode": "light",
     "light": "Gruvbox Light",
     "dark": "One Dark"
-  }
+  },
+  "show_edit_predictions": false
 }

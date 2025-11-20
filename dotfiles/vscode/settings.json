@@ -7,8 +7,10 @@
   "editor.minimap.enabled": false,
   "editor.lineNumbers": "on",
   "editor.tabSize": 4,
-  "editor.rulers": [80, 120],
-
+  "editor.rulers": [
+    80,
+    120
+  ],
   "editor.renderWhitespace": "boundary",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
@@ -40,6 +42,9 @@
   "telemetry.telemetryLevel": "off",
   "amp.url": "https://ampcode.com/",
   "editor.wordBasedSuggestions": "off",
-  "amp.tab.enabled": false,
-  "cursor.cpp.disabledLanguages": ["plaintext"]
+  "amp.tab.enabled": true,
+  "cursor.cpp.disabledLanguages": [
+    "plaintext"
+  ],
+  "explorer.confirmDelete": false
 }
