@@ -4,6 +4,7 @@ brew "ripgrep"
 brew "tmux"
 brew "fzf"
 brew "tree"
+brew "go"
 
 cask "font-jetbrains-mono-nerd-font"
 

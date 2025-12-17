@@ -197,6 +197,106 @@ install_packages() {
     install_fonts
 }
 
+setup_rust() {
+    log step "Setting up Rust"
+
+    # Check if rustup is already installed
+    if [[ ! -d "$HOME/.cargo" ]]; then
+        log info "Installing Rust using official rustup installer"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path || {
+            log error "Failed to install Rust"
+            return 1
+        }
+    else
+        log info "Rust is already installed"
+    fi
+
+    # Source cargo environment to update PATH in current session
+    [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+    # Verify installation
+    if [[ -f "$HOME/.cargo/bin/rustup" ]]; then
+        log info "Configuring Rust toolchain"
+        "$HOME/.cargo/bin/rustup" toolchain install stable || true
+        "$HOME/.cargo/bin/rustup" default stable || true
+        "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true
+        
+        log success "Rust setup completed"
+        log info "Note: Restart your shell to ensure ~/.cargo/bin is in PATH: exec \$SHELL"
+    else
+        log error "Rust installation verification failed"
+        return 1
+    fi
+}
+
+setup_go() {
+    log step "Setting up Go"
+
+    if command -v go >/dev/null 2>&1; then
+        local go_version=$(go version | awk '{print $3}')
+        log success "Go installed: $go_version"
+        
+        # Set up Go environment variables
+        local go_bin_path
+        go_bin_path=$(go env GOPATH)/bin
+        if [[ ! "$PATH" =~ $go_bin_path ]]; then
+            log info "Note: Add $go_bin_path to your PATH for Go tools"
+        fi
+    else
+        log warn "go not found. Go may not be properly installed."
+        return 1
+    fi
+}
+
+setup_uv() {
+    log step "Setting up UV (Python package manager)"
+
+    if command -v uv >/dev/null 2>&1; then
+        log info "UV is already installed"
+    else
+        log info "Installing UV from astral.sh"
+        curl -LsSf https://astral.sh/uv/install.sh | sh || {
+            log warn "Failed to install UV"
+            return 1
+        }
+    fi
+
+    if command -v uv >/dev/null 2>&1; then
+        log info "Installing latest Python via UV"
+        "$HOME/.local/bin/uv" python install || {
+            log warn "Failed to install Python via UV"
+        }
+        log success "UV setup completed"
+    fi
+}
+
+setup_nvm() {
+    log step "Setting up NVM (Node.js version manager)"
+
+    local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+
+    if [[ -d "$nvm_dir" ]]; then
+        log info "NVM is already installed"
+    else
+        log info "Installing NVM"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash || {
+            log warn "Failed to install NVM"
+            return 1
+        }
+    fi
+
+    # Source NVM for this session
+    [[ -s "$nvm_dir/nvm.sh" ]] && . "$nvm_dir/nvm.sh"
+
+    if command -v nvm >/dev/null 2>&1 || [[ -s "$nvm_dir/nvm.sh" ]]; then
+        log info "Installing Node.js v22 via NVM"
+        "$nvm_dir/nvm.sh" "install" "22" || {
+            log warn "Failed to install Node.js via NVM"
+        }
+        log success "NVM setup completed"
+    fi
+}
+
 setup_vscode() {
     log step "Setting up VSCode configuration"
 
@@ -545,6 +645,85 @@ remove_dotfiles() {
     done
 }
 
+remove_uv() {
+    log step "Removing UV"
+
+    if [[ -d "$HOME/.local/bin" ]]; then
+        rm -f "$HOME/.local/bin/uv" "$HOME/.local/bin/uvx" 2>/dev/null || true
+        log info "UV binaries removed"
+    fi
+
+    if command -v uv >/dev/null 2>&1; then
+        log info "Cleaning UV cache and Python installations"
+        uv cache clean 2>/dev/null || true
+        rm -rf "$(uv python dir)" 2>/dev/null || true
+        rm -rf "$(uv tool dir)" 2>/dev/null || true
+    fi
+
+    log info "UV removal completed"
+}
+
+remove_nvm() {
+    log step "Removing NVM"
+
+    local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+
+    if [[ -d "$nvm_dir" ]]; then
+        log info "Removing NVM directory: $nvm_dir"
+        rm -rf "$nvm_dir"
+        log success "NVM removed"
+    else
+        log info "NVM directory not found"
+    fi
+}
+
+remove_rust() {
+    log step "Removing Rust"
+
+    # Source cargo env to ensure rustup is in PATH if it exists
+    [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+    # Try official uninstall method first
+    if command -v rustup >/dev/null 2>&1 || [[ -f "$HOME/.cargo/bin/rustup" ]]; then
+        log info "Uninstalling Rust via official rustup uninstaller"
+        "$HOME/.cargo/bin/rustup" self uninstall -y 2>/dev/null || {
+            log warn "Rustup uninstall command failed, proceeding with manual cleanup"
+        }
+    else
+        log info "rustup not found, proceeding with manual cleanup"
+    fi
+
+    # Clean up Rust directories
+    if [[ -d "$HOME/.cargo" ]]; then
+        log info "Removing ~/.cargo directory"
+        rm -rf "$HOME/.cargo"
+    fi
+
+    if [[ -d "$HOME/.rustup" ]]; then
+        log info "Removing ~/.rustup directory"
+        rm -rf "$HOME/.rustup"
+    fi
+
+    log info "Rust removal completed"
+}
+
+remove_go() {
+    log step "Removing Go"
+
+    # Clean up Go directories
+    if [[ -d "$HOME/go" ]]; then
+        log info "Removing ~/go directory"
+        rm -rf "$HOME/go"
+    fi
+
+    if [[ -d "$HOME/.go" ]]; then
+        log info "Removing ~/.go directory"
+        rm -rf "$HOME/.go"
+    fi
+
+    log info "Go removal completed (binary will be removed via package manager)"
+}
+
 remove_packages() {
     log step "Removing packages"
 
@@ -617,6 +796,10 @@ cmd_install() {
     setup_xdg
     install_package_manager
     install_packages
+    setup_rust
+    setup_go
+    setup_uv
+    setup_nvm
     install_dotfiles
 
     log success "Installation completed!"
@@ -628,6 +811,10 @@ cmd_remove() {
 
     detect_system
     remove_dotfiles
+    remove_rust
+    remove_go
+    remove_uv
+    remove_nvm
     remove_packages
     cleanup_system
 
