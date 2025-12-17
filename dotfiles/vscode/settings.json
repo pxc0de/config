@@ -42,7 +42,7 @@
   "telemetry.telemetryLevel": "off",
   "amp.url": "https://ampcode.com/",
   "editor.wordBasedSuggestions": "off",
-  "amp.tab.enabled": true,
+  "amp.tab.enabled": false,
   "cursor.cpp.disabledLanguages": [
     "plaintext"
   ],

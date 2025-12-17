@@ -2,6 +2,8 @@ brew "stow"
 brew "neovim"
 brew "ripgrep"
 brew "tmux"
+brew "fzf"
+brew "tree"
 
 cask "font-jetbrains-mono-nerd-font"
 
@@ -10,4 +12,3 @@ cask "zed"
 cask "cursor"
 cask "visual-studio-code"
 cask "google-chrome"
-cask "cursor-cli"

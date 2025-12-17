@@ -7,7 +7,7 @@ alias gpom="git pull origin main"
 # Delete all local branches except main
 alias gdab="git branch | grep -v 'main' | xargs git branch -D"
 ###############################################################################
-# Custom prompt with git status and directory
+# My custom prompt with directory and git branch, I dont want git status
 ###############################################################################
 # Catppuccin Macchiato colors
 LAVENDER="%F{#b7bdf8}"
@@ -16,30 +16,21 @@ RED="%F{#ed8796}"
 MAUVE="%F{#c6a0f6}"
 RESET="%f"
 
-# Git status and branch function
-git_status() {
+# Git branch if git repo else silent
+git_branch() {
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ -z "$branch" ]; then
     return
   fi
 
-  local git_stat=$(git status --porcelain 2>/dev/null)
-  local symbols=""
-  [[ "$git_stat" == *"??"* ]] && symbols+="?"
-  [[ "$git_stat" == *" M"* ]] && symbols+="!"
-  [[ "$git_stat" == *"A "*  ]] && symbols+="+"
-  [[ "$git_stat" == *"D "*  ]] && symbols+="✘"
-  [[ "$git_stat" == *"R "*  ]] && symbols+="»"
-  [[ "$git_stat" == *"UU"* ]] && symbols+="="
-
-  echo " ${MAUVE}${branch}${RESET}${symbols:+ (${MAUVE}${symbols}${RESET})}"
+  echo " ${MAUVE}${branch}${RESET}"
 }
 
 # Build prompt
 setopt PROMPT_SUBST
 precmd() { echo }
 
-PROMPT='%B${LAVENDER}🚀 %3~${RESET}$(git_status)
+PROMPT='%B${LAVENDER}🚀 %3~${RESET}$(git_branch)
 ${PEACH}❯${RESET} %b'
 ###############################################################################
 export NVM_DIR="$HOME/.nvm"

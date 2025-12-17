@@ -1,5 +1,7 @@
 # Colors
 background = #1e1e2e
+background-opacity = 0.75
+background-blur = true
 foreground = #cad3f5
 
 # Typography
