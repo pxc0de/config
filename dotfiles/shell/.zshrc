@@ -1,4 +1,8 @@
 ###############################################################################
+# Force color output in terminal applications
+export CLICOLOR=1
+export CLICOLOR_FORCE=1
+###############################################################################
 alias ga="git add"
 alias gc="git commit -m"
 alias gs="git status"

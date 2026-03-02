@@ -20,7 +20,7 @@ defaults write com.apple.dock autohide -bool true
 # Set Dock icon size to 48 pixels (medium size)
 defaults write com.apple.dock tilesize -int 48
 
-# Position Dock on the left side of screen (more vertical space for code)
+# Position Dock on the right side of screen (more vertical space for code)
 defaults write com.apple.dock orientation -string "right"
 
 # Disable Dock magnification effect when hovering
