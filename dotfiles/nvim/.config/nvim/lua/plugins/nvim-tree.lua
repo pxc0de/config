@@ -10,6 +10,7 @@ return {
     opts = {
       filters = {
         dotfiles = false,
+        git_ignored = false, -- show files listed in .gitignore (default is to hide them)
         custom = { ".DS_Store", ".git" },
       },
       disable_netrw = true,

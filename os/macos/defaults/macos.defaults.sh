@@ -160,12 +160,25 @@ defaults write NSGlobalDomain AppleFontSmoothing -int 2
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
 defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
-# Set trackpad speed to fast
+# Set trackpad tracking speed to fastest (3.0 = max on the System Settings slider)
 defaults write NSGlobalDomain com.apple.trackpad.scaling -float 3
+
+# Set mouse tracking speed to fastest (3.0 = max on the System Settings slider)
+defaults write NSGlobalDomain com.apple.mouse.scaling -float 3
 
 # Enable three-finger drag
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
 defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true
+
+# Right click = right click: enable two-finger secondary click on the trackpad
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+defaults write com.apple.AppleMultitouchTrackpad TrackpadRightClick -bool true
+defaults write NSGlobalDomain ContextMenuGesture -int 1
+
+# Right click = right click: enable the right side of the Magic Mouse as button 2
+# (left side stays a normal left click)
+defaults write com.apple.AppleMultitouchMouse MouseButtonMode -string "TwoButton"
+defaults write com.apple.driver.AppleBluetoothMultitouch.mouse MouseButtonMode -string "TwoButton"
 
 #=============================================================================
 # MENU BAR & CONTROL CENTER
@@ -193,6 +206,16 @@ defaults write com.apple.ActivityMonitor IconType -int 5
 # Show all processes in Activity Monitor
 defaults write com.apple.ActivityMonitor ShowCategory -int 0
 
+
+#=============================================================================
+# SAFARI SETTINGS
+#=============================================================================
+
+# Enable ⌃Tab / ⌃⇧Tab to cycle through tabs
+defaults write com.apple.Safari UseTabShortcuts -bool true
+
+# Use separate (traditional) tab layout - tab bar below address bar
+defaults write com.apple.Safari TabLayout -int 0
 
 #=============================================================================
 # RESTART REQUIRED SERVICES

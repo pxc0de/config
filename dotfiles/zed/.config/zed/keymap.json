@@ -1,18 +1,18 @@
 [
   {
-    "context": "Workspace",
+    "context": "Workspace && vim_mode == normal",
     "bindings": {
       "ctrl-s": "workspace::Save",
       "space s s": "workspace::SaveAll",
       "space x": "pane::CloseActiveItem",
-      "space t": "terminal_panel::Toggle"
-    }
+      "space t": "terminal_panel::Toggle",
+    },
   },
   {
     "context": "Editor && vim_mode == insert",
     "bindings": {
-      "j k": "vim::NormalBefore"
-    }
+      "j k": "vim::NormalBefore",
+    },
   },
   {
     "context": "Editor && (vim_mode == normal || vim_mode == visual) && !VimWaiting && !menu",
@@ -20,8 +20,8 @@
       "space": null,
       "space f f": "file_finder::Toggle",
       "space e": "project_panel::ToggleFocus",
-      "space t": "terminal_panel::ToggleFocus"
-    }
+      "space t": "terminal_panel::ToggleFocus",
+    },
   },
   {
     "context": "ProjectPanel && not_editing",
@@ -34,7 +34,7 @@
       "y p": "workspace::CopyPath",
       "y r p": "workspace::CopyRelativePath",
       "r": "project_panel::Rename",
-      "d": ["project_panel::Trash", { "skip_prompt": false }]
-    }
-  }
+      "d": ["project_panel::Trash", { "skip_prompt": false }],
+    },
+  },
 ]

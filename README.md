@@ -1,22 +1,3 @@
-## Repository Structure
-
-```
-├── setup.sh                    # Main setup script
-├── dotfiles/
-│   ├── alacritty/
-│   ├── git/
-│   ├── nvim/
-│   ├── shell/                  # Shell configuration (zsh/bash)
-│   ├── starship/
-│   └── tmux/
-├── os/                         # OS-specific configurations
-│   ├── macos/
-│   │   ├── packages/Brewfile   # Homebrew packages
-│   │   └── defaults/           # macOS system preferences
-│   └── ubuntu/
-│       └── packages/apt.txt    # APT packages
-```
-
 ## Quick Start
 
 1. Clone this repository:
