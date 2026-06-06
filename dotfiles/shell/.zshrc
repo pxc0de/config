@@ -10,6 +10,8 @@ alias gp="git push origin -u HEAD"
 alias gpom="git pull origin main"
 # Delete all local branches except main
 alias gdab="git branch | grep -v 'main' | xargs git branch -D"
+# Source machine-local config (untracked: private aliases, SSH hosts, etc.)
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
 ###############################################################################
 # My custom prompt with directory and git branch, I dont want git status
 ###############################################################################
