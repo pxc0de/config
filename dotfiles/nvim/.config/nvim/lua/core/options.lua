@@ -31,6 +31,7 @@ vim.opt.signcolumn = "yes"    -- always show sign column
 vim.opt.cursorline = true     -- highlight current line
 vim.opt.termguicolors = true  -- use truecolor in the terminal
 vim.opt.winborder = "rounded" -- New in 0.11: default border for floating windows
+vim.opt.colorcolumn = "80"
 
 -- Scrolling
 vim.opt.scrolloff = 8       -- keep 8 lines visible above/below cursor
