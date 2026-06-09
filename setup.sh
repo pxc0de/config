@@ -262,8 +262,11 @@ setup_uv() {
     fi
 
     if command -v uv >/dev/null 2>&1; then
-        log info "Installing latest Python via UV"
-        "$HOME/.local/bin/uv" python install || {
+        log info "Installing latest Python via UV and setting it system-wide default"
+        # --default also installs `python`/`python3` shims into ~/.local/bin,
+        # which is prepended to PATH (see dotfiles/shell/.zshrc), so a bare
+        # `python` resolves to UV's latest interpreter instead of /usr/bin/python3.
+        "$HOME/.local/bin/uv" python install --default --preview-features python-install-default || {
             log warn "Failed to install Python via UV"
         }
         log success "UV setup completed"
