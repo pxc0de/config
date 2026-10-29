@@ -223,7 +223,8 @@ install_packages() {
             log info "Installing packages from Brewfile"
             local brewfile="$SCRIPT_DIR/os/macos/packages/Brewfile"
             [[ -f "$brewfile" ]] && {
-                brew bundle --file "$brewfile"
+                # Only install what's missing; upgrading is `./setup.sh update`'s job
+                brew bundle install --no-upgrade --file "$brewfile"
             }
             ;;
         apt)
@@ -648,6 +649,119 @@ cleanup_system() {
 
 
 #=============================================================================
+# MAINTENANCE
+#=============================================================================
+
+ask_yes_no() {
+    local answer
+    read -r -p "$1 [y/N] " answer </dev/tty
+    [[ "$answer" =~ ^[Yy]$ ]]
+}
+
+update_brew() {
+    [[ "$PKG_MGR" == "brew" ]] || return 0
+    log step "Upgrading Homebrew packages and apps"
+    brew update
+    # --greedy also upgrades casks that normally update themselves (Chrome, Claude, ...)
+    brew upgrade --greedy
+}
+
+update_rust() {
+    [[ -x "$HOME/.cargo/bin/rustup" ]] || return 0
+    log step "Updating Rust"
+    "$HOME/.cargo/bin/rustup" update
+}
+
+update_uv() {
+    local uv="$HOME/.local/bin/uv"
+    [[ -x "$uv" ]] || return 0
+    log step "Updating uv, Python and uv tools"
+    "$uv" self update
+    # Picks up a new Python minor release, then patches existing ones
+    "$uv" python install --default --preview-features python-install-default
+    "$uv" python upgrade
+    "$uv" tool upgrade --all
+}
+
+update_node() {
+    local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+    [[ -s "$nvm_dir/nvm.sh" ]] || return 0
+    log step "Updating Node.js 22 to the latest patch"
+    (set +eu; . "$nvm_dir/nvm.sh"; nvm install 22 --reinstall-packages-from=default && nvm alias default 22)
+}
+
+update_claude_code() {
+    [[ -x "$HOME/.local/bin/claude" ]] || return 0
+    log step "Updating Claude Code"
+    "$HOME/.local/bin/claude" update
+}
+
+update_neovim_plugins() {
+    log step "Updating Neovim plugins"
+    nvim --headless "+Lazy! sync" +qa
+    log info "lazy-lock.json changed if plugins updated; commit it to pin the new versions"
+}
+
+update_tmux_plugins() {
+    local tpm_dir="$HOME/.tmux/plugins/tpm"
+    [[ -x "$tpm_dir/bin/update_plugins" ]] || return 0
+    log step "Updating tmux plugins"
+    "$tpm_dir/bin/update_plugins" all
+}
+
+list_os_updates() {
+    [[ "$OS" == "macos" ]] || return 0
+    log step "Checking for macOS updates (not installed automatically)"
+    softwareupdate --list || true
+}
+
+cleanup_brew() {
+    [[ "$PKG_MGR" == "brew" ]] || return 0
+    local brewfile="$SCRIPT_DIR/os/macos/packages/Brewfile"
+    # Type flags keep this to Homebrew only (no uv/cargo/go extensions)
+    local types=(--formulae --casks --taps)
+
+    log step "Looking for Homebrew packages not in the Brewfile"
+    local pending
+    # Dry run exits non-zero whenever anything is pending; keep only the uninstall lists
+    pending="$(brew bundle cleanup "${types[@]}" --file "$brewfile" 2>/dev/null \
+        | awk '/^Would uninstall/ {keep=1} /^Would `brew cleanup`/ {keep=0} keep' || true)"
+    if [[ -z "$pending" ]]; then
+        log info "Nothing installed outside the Brewfile"
+    else
+        echo "$pending"
+        if ask_yes_no "Uninstall these (apps are zapped, including their settings)?"; then
+            brew bundle cleanup "${types[@]}" --force --zap --file "$brewfile"
+        else
+            log info "Skipped. Add anything you want to keep to the Brewfile"
+        fi
+    fi
+
+    log step "Removing unused dependencies and old downloads"
+    brew autoremove
+    brew cleanup --prune=all
+}
+
+cleanup_caches() {
+    log step "Pruning tool caches"
+    [[ -x "$HOME/.local/bin/uv" ]] && "$HOME/.local/bin/uv" cache prune
+    command -v nvim >/dev/null 2>&1 && nvim --headless "+Lazy! clean" +qa
+    [[ -x "$HOME/.tmux/plugins/tpm/bin/clean_plugins" ]] && "$HOME/.tmux/plugins/tpm/bin/clean_plugins"
+    return 0
+}
+
+# Only links that point into this repo, so nothing else in ~ is touched
+cleanup_stale_dotfile_links() {
+    log step "Removing dangling dotfile symlinks"
+    local link
+    while IFS= read -r link; do
+        [[ "$(readlink "$link")" == *config/dotfiles/* ]] || continue
+        log info "Removing $link"
+        rm -f "$link"
+    done < <(find "$HOME" "$XDG_CONFIG_HOME" -maxdepth 2 -type l ! -exec test -e {} \; -print 2>/dev/null)
+}
+
+#=============================================================================
 # COMMANDS
 #=============================================================================
 
@@ -663,9 +777,9 @@ setup_claude_code() {
 }
 
 setup_neovim_plugins() {
-    log step "Installing Neovim plugins"
+    log step "Installing Neovim plugins (pinned to lazy-lock.json)"
     # Language servers are installed by Mason the first time a file is opened
-    nvim --headless "+Lazy! sync" +qa || log warn "Neovim plugin sync failed, run :Lazy sync manually"
+    nvim --headless "+Lazy! restore" +qa || log warn "Neovim plugin install failed, run :Lazy restore manually"
 }
 
 apply_macos_defaults() {
@@ -694,6 +808,48 @@ cmd_install() {
 
     log success "Installation completed!"
     log info "Restart your Mac so every macOS setting takes effect"
+}
+
+cmd_sync() {
+    banner "Syncing Brewfile and Dotfiles"
+
+    detect_system
+    load_brew_env
+    install_packages
+    install_dotfiles
+
+    log success "Sync completed! Nothing already installed was upgraded"
+}
+
+cmd_update() {
+    banner "Updating Everything"
+
+    detect_system
+    keep_sudo_alive
+    load_brew_env
+    run_step update_brew
+    run_step install_packages
+    run_step update_rust
+    run_step update_uv
+    run_step update_node
+    run_step update_claude_code
+    run_step update_neovim_plugins
+    run_step update_tmux_plugins
+    run_step list_os_updates
+
+    log success "Update completed!"
+}
+
+cmd_cleanup() {
+    banner "Cleaning Up"
+
+    detect_system
+    load_brew_env
+    run_step cleanup_brew
+    run_step cleanup_caches
+    run_step cleanup_stale_dotfile_links
+
+    log success "Cleanup completed!"
 }
 
 cmd_remove() {
@@ -726,12 +882,17 @@ USAGE:
     ./setup.sh <COMMAND>
 
 COMMANDS:
-    install                 Install everything (idempotent)
+    install                 Install everything (idempotent, never upgrades)
+    sync                    Install only what's new in the Brewfile and re-link dotfiles
+    update                  Upgrade EVERYTHING (Homebrew, apps, languages, plugins)
+    cleanup                 Remove anything not in the Brewfile (asks first) and prune caches
     remove                  Remove everything, restore original state
 
 EXAMPLES:
     ./setup.sh install
-    ./setup.sh remove
+    ./setup.sh sync
+    ./setup.sh update
+    ./setup.sh cleanup
 
 EOF
 }
@@ -740,6 +901,15 @@ main() {
     case "${1:-}" in
         install)
             cmd_install
+            ;;
+        sync)
+            cmd_sync
+            ;;
+        update)
+            cmd_update
+            ;;
+        cleanup)
+            cmd_cleanup
             ;;
         remove)
             cmd_remove

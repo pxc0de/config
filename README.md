@@ -12,33 +12,15 @@ If the repo is already cloned, run `./setup.sh install` instead.
 
 ## Usage
 
-The `setup.sh` script provides three main commands:
+| Command | What it does |
+|---|---|
+| `./setup.sh install` | Full setup. Safe to re-run; never upgrades anything already installed. |
+| `./setup.sh sync` | Installs only what's new in the Brewfile and re-links dotfiles. No upgrades, no surprises. |
+| `./setup.sh update` | Upgrades **everything**: Homebrew packages and apps, Rust, uv/Python, Node 22, Claude Code, Neovim and tmux plugins. Lists macOS updates without installing them. |
+| `./setup.sh cleanup` | Lists anything installed via Homebrew that isn't in the Brewfile and, after you confirm, uninstalls it. Then prunes caches, unused plugins and dangling dotfile links. |
+| `./setup.sh remove` | Removes everything this repo installed. |
 
-### Install Command
-
-Install packages and dotfiles:
-
-```bash
-# Install everything
-./setup.sh install
-```
-
-### Remove Command
-
-Remove packages and dotfiles:
-
-```bash
-# Remove everything
-./setup.sh remove
-```
-
-### Help
-
-Display usage information:
-
-```bash
-./setup.sh --help
-```
+Typical flow: add a line to the Brewfile → `./setup.sh sync`. Once a month → `./setup.sh update`, then commit `lazy-lock.json` if Neovim plugins changed.
 
 ## macOS System Customization
 
