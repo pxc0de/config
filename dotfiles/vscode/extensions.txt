@@ -1,2 +1,0 @@
-asvetliakov.vscode-neovim
-hashicorp.terraform

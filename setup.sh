@@ -6,7 +6,15 @@ set -euo pipefail
 # CONFIGURATION
 #=============================================================================
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# BASH_SOURCE is empty when piped via `curl ... | bash`; bootstrap() handles that case
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    SCRIPT_DIR=""
+fi
+readonly SCRIPT_DIR
+readonly REPO_URL="https://github.com/pxc0de/config.git"
+readonly REPO_DIR="$HOME/config"
 readonly XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 readonly XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 readonly XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -96,14 +104,53 @@ setup_xdg() {
     log info "XDG directories setup completed"
 }
 
+load_brew_env() {
+    local brew_bin
+    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        [[ -x "$brew_bin" ]] && { eval "$("$brew_bin" shellenv)"; return 0; }
+    done
+    return 0
+}
+
+# Ask for the password once and keep sudo alive (Homebrew and some casks need it)
+keep_sudo_alive() {
+    [[ "$OS" == "macos" ]] || return 0
+    log step "Requesting administrator access (asked once)"
+    sudo -v
+    while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+}
+
+# When run via `curl ... | bash`, clone the repo and re-run from the clone
+bootstrap() {
+    [[ -n "$SCRIPT_DIR" && -d "$SCRIPT_DIR/dotfiles" ]] && return 0
+
+    banner "Bootstrapping"
+    detect_system
+    keep_sudo_alive
+    install_package_manager
+
+    if [[ ! -d "$REPO_DIR/.git" ]]; then
+        log step "Cloning $REPO_URL into $REPO_DIR"
+        git clone "$REPO_URL" "$REPO_DIR"
+    fi
+    exec bash "$REPO_DIR/setup.sh" "${@:-install}" </dev/tty
+}
+
+# Run a step without aborting the whole install if it fails
+run_step() {
+    "$@" || log warn "Step '$1' failed, continuing"
+}
+
 install_package_manager() {
     log step "Setting up package manager"
     case "$PKG_MGR" in
         brew)
+            load_brew_env
             command -v brew >/dev/null 2>&1 || {
+                # Also installs Xcode Command Line Tools (and git) headlessly
                 log step "Installing Homebrew"
                 NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
+                load_brew_env
             }
 
             xcode-select -p >/dev/null 2>&1 || {
@@ -255,13 +302,14 @@ setup_uv() {
         log info "UV is already installed"
     else
         log info "Installing UV from astral.sh"
-        curl -LsSf https://astral.sh/uv/install.sh | sh || {
+        # PATH is handled by dotfiles/shell/.zshrc; don't let the installer write ~/.zshrc
+        curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh || {
             log warn "Failed to install UV"
             return 1
         }
     fi
 
-    if command -v uv >/dev/null 2>&1; then
+    if [[ -x "$HOME/.local/bin/uv" ]]; then
         log info "Installing latest Python via UV and setting it system-wide default"
         # --default also installs `python`/`python3` shims into ~/.local/bin,
         # which is prepended to PATH (see dotfiles/shell/.zshrc), so a bare
@@ -282,161 +330,26 @@ setup_nvm() {
         log info "NVM is already installed"
     else
         log info "Installing NVM"
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash || {
+        # PROFILE=/dev/null: dotfiles/shell/.zshrc already loads nvm
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | PROFILE=/dev/null bash || {
             log warn "Failed to install NVM"
             return 1
         }
     fi
 
     # Source NVM for this session
-    [[ -s "$nvm_dir/nvm.sh" ]] && . "$nvm_dir/nvm.sh"
+    if [[ -s "$nvm_dir/nvm.sh" ]]; then
+        set +eu; . "$nvm_dir/nvm.sh"; set -eu
+    fi
 
-    if command -v nvm >/dev/null 2>&1 || [[ -s "$nvm_dir/nvm.sh" ]]; then
+    if command -v nvm >/dev/null 2>&1; then
         log info "Installing Node.js v22 via NVM"
-        "$nvm_dir/nvm.sh" "install" "22" || {
+        # nvm is a shell function and trips `set -u`, so relax it here
+        (set +u; nvm install 22 && nvm alias default 22) || {
             log warn "Failed to install Node.js via NVM"
         }
         log success "NVM setup completed"
     fi
-}
-
-setup_vscode() {
-    log step "Setting up VSCode configuration"
-
-    local vscode_source_dir="$SCRIPT_DIR/dotfiles/vscode"
-    local vscode_target_dir=""
-
-    case "$OS" in
-        macos)
-            vscode_target_dir="$HOME/Library/Application Support/Code/User"
-            ;;
-        ubuntu)
-            vscode_target_dir="$HOME/.config/Code/User"
-            ;;
-        *)
-            log warn "VSCode setup not supported for OS: $OS"
-            return 0
-            ;;
-    esac
-
-    # Create target directory if it doesn't exist
-    [[ ! -d "$vscode_target_dir" ]] && mkdir -p "$vscode_target_dir"
-
-    # Create symlinks for VSCode configuration files
-    for config_file in "$vscode_source_dir"/*.json; do
-        [[ -f "$config_file" ]] && {
-            local filename="$(basename "$config_file")"
-            local target_file="$vscode_target_dir/$filename"
-
-            # Remove existing file/symlink if it exists
-            [[ -e "$target_file" || -L "$target_file" ]] && rm -f "$target_file"
-
-            # Create symlink
-            ln -s "$config_file" "$target_file"
-            log info "VSCode: Symlinked $filename"
-        }
-    done
-
-    # Install VSCode extensions if extensions.txt exists and code command is available
-    local extensions_file="$vscode_source_dir/extensions.txt"
-    if [[ -f "$extensions_file" ]] && command -v code >/dev/null 2>&1; then
-        log step "Installing VSCode extensions"
-        while IFS= read -r extension; do
-            # Skip empty lines and comments
-            [[ -z "$extension" || "$extension" =~ ^[[:space:]]*# ]] && continue
-
-            log info "Installing VSCode extension: $extension"
-            local output
-            output=$(code --install-extension "$extension" 2>&1)
-            local exit_code=$?
-
-            if [[ $exit_code -eq 0 ]]; then
-                if [[ "$output" == *"is already installed"* ]]; then
-                    log info "VSCode extension $extension is already installed"
-                else
-                    log success "VSCode extension $extension installed successfully"
-                fi
-            else
-                log warn "Failed to install VSCode extension: $extension"
-                log warn "Error: $output"
-            fi
-        done < "$extensions_file"
-        log info "VSCode extensions installation completed"
-    elif [[ -f "$extensions_file" ]] && ! command -v code >/dev/null 2>&1; then
-        log warn "VSCode CLI not found. Extensions not installed. Install VSCode and ensure 'code' command is in PATH."
-    fi
-
-    log info "VSCode configuration setup completed for $OS"
-}
-
-setup_cursor() {
-    log step "Setting up Cursor configuration"
-
-    local vscode_source_dir="$SCRIPT_DIR/dotfiles/vscode"
-    local cursor_target_dir=""
-
-    case "$OS" in
-        macos)
-            cursor_target_dir="$HOME/Library/Application Support/Cursor/User"
-            ;;
-        ubuntu)
-            cursor_target_dir="$HOME/.config/Cursor/User"
-            ;;
-        *)
-            log warn "Cursor setup not supported for OS: $OS"
-            return 0
-            ;;
-    esac
-
-    # Create target directory if it doesn't exist
-    [[ ! -d "$cursor_target_dir" ]] && mkdir -p "$cursor_target_dir"
-
-    # Create symlinks for Cursor configuration files (reusing VSCode configs)
-    for config_file in "$vscode_source_dir"/*.json; do
-        [[ -f "$config_file" ]] && {
-            local filename="$(basename "$config_file")"
-            local target_file="$cursor_target_dir/$filename"
-
-            # Remove existing file/symlink if it exists
-            [[ -e "$target_file" || -L "$target_file" ]] && rm -f "$target_file"
-
-            # Create symlink
-            ln -s "$config_file" "$target_file"
-            log info "Cursor: Symlinked $filename"
-        }
-    done
-
-    # Install Cursor extensions if extensions.txt exists and cursor command is available
-    local extensions_file="$vscode_source_dir/extensions.txt"
-    if [[ -f "$extensions_file" ]] && command -v cursor >/dev/null 2>&1; then
-        log step "Installing Cursor extensions"
-        while IFS= read -r extension; do
-            # Skip empty lines and comments
-            [[ -z "$extension" || "$extension" =~ ^[[:space:]]*# ]] && continue
-
-            log info "Installing Cursor extension: $extension"
-            local output
-            output=$(cursor --install-extension "$extension" 2>&1)
-            local exit_code=$?
-
-            if [[ $exit_code -eq 0 ]]; then
-                if [[ "$output" == *"is already installed"* ]]; then
-                    log info "Cursor extension $extension is already installed"
-                else
-                    log success "Cursor extension $extension installed successfully"
-                fi
-            else
-                log warn "Failed to install Cursor extension: $extension"
-                log warn "Error: $output"
-            fi
-        done < "$extensions_file"
-        log info "Cursor extensions installation completed"
-    elif [[ -f "$extensions_file" ]] && ! command -v cursor >/dev/null 2>&1; then
-        log warn "Cursor CLI not found. Extensions not installed. Install Cursor and ensure 'cursor' command is in PATH."
-        log info "To install Cursor CLI: Open Cursor -> Command Palette -> 'Install cursor to shell'"
-    fi
-
-    log info "Cursor configuration setup completed for $OS"
 }
 
 setup_tmux() {
@@ -509,89 +422,38 @@ setup_tmux() {
     log info "  2. Press: prefix + I (Ctrl-a + Shift-i)"
 }
 
+# Move aside any real file that would block stow (e.g. a ~/.zshrc written by an installer)
+backup_conflicts() {
+    local package="$1" rel target
+    while IFS= read -r rel; do
+        rel="${rel#./}"
+        [[ "$(basename "$rel")" == README* ]] && continue
+        target="$HOME/$rel"
+        [[ -e "$target" || -L "$target" ]] || continue
+        [[ "$(realpath "$target" 2>/dev/null)" == "$(realpath "$package/$rel")" ]] && continue
+        log warn "Backing up existing $target to $target.bak"
+        mv "$target" "$target.bak"
+    done < <(cd "$package" && find . \( -type f -o -type l \))
+}
+
+stow_package() {
+    local pkg_name="$1"
+    log info "Stowing: $pkg_name"
+    backup_conflicts "$SCRIPT_DIR/dotfiles/$pkg_name"
+    stow -R -t "$HOME" -d "$SCRIPT_DIR/dotfiles" "$pkg_name" || log warn "Failed to stow $pkg_name"
+}
+
 install_dotfiles() {
     log step "Installing dotfiles"
 
     for package in "$SCRIPT_DIR/dotfiles"/*; do
         [[ -d "$package" ]] && {
             local pkg_name="$(basename "$package")"
-            # Skip packages that need special handling
-            if [[ "$pkg_name" == "vscode" ]]; then
-                setup_vscode
-                setup_cursor
-            elif [[ "$pkg_name" == "tmux" ]]; then
-                # First stow the tmux config, then setup plugins
-                log info "Stowing: $pkg_name"
-                stow -R -t "$HOME" -d "$SCRIPT_DIR/dotfiles" "$pkg_name" 2>/dev/null || true
-                setup_tmux
-            else
-                log info "Stowing: $pkg_name"
-                stow -R -t "$HOME" -d "$SCRIPT_DIR/dotfiles" "$pkg_name" 2>/dev/null || true
-            fi
+            stow_package "$pkg_name"
+            # tmux plugins need the config stowed first
+            [[ "$pkg_name" == "tmux" ]] && run_step setup_tmux
         }
     done
-}
-
-remove_vscode() {
-    log step "Removing VSCode configuration"
-
-    local vscode_target_dir=""
-
-    case "$OS" in
-        macos)
-            vscode_target_dir="$HOME/Library/Application Support/Code/User"
-            ;;
-        ubuntu)
-            vscode_target_dir="$HOME/.config/Code/User"
-            ;;
-        *)
-            log warn "VSCode removal not supported for OS: $OS"
-            return 0
-            ;;
-    esac
-
-    # Remove VSCode configuration symlinks
-    if [[ -d "$vscode_target_dir" ]]; then
-        for config_file in "$vscode_target_dir"/*.json; do
-            [[ -L "$config_file" ]] && {
-                local filename="$(basename "$config_file")"
-                rm -f "$config_file"
-                log info "VSCode: Removed symlink $filename"
-            }
-        done
-        log info "VSCode configuration symlinks removed"
-    fi
-}
-
-remove_cursor() {
-    log step "Removing Cursor configuration"
-
-    local cursor_target_dir=""
-
-    case "$OS" in
-        macos)
-            cursor_target_dir="$HOME/Library/Application Support/Cursor/User"
-            ;;
-        ubuntu)
-            cursor_target_dir="$HOME/.config/Cursor/User"
-            ;;
-        *)
-            log warn "Cursor removal not supported for OS: $OS"
-            return 0
-            ;;
-    esac
-
-    # Remove Cursor configuration symlinks
-    if [[ -d "$cursor_target_dir" ]]; then
-        for config_file in "$cursor_target_dir"/*.json; do
-            [[ -L "$config_file" ]] && {
-                local filename="$(basename "$config_file")"
-                rm -f "$config_file"
-                log info "Cursor: Removed symlink $filename"
-            }
-        done
-        log info "Cursor configuration symlinks removed"
-    fi
 }
 
 remove_tmux() {
@@ -626,10 +488,7 @@ remove_dotfiles() {
         [[ -d "$package" ]] && {
             local pkg_name="$(basename "$package")"
             # Skip packages that need special handling
-            if [[ "$pkg_name" == "vscode" ]]; then
-                remove_vscode
-                remove_cursor
-            elif [[ "$pkg_name" == "tmux" ]]; then
+            if [[ "$pkg_name" == "tmux" ]]; then
                 # First remove plugins, then unstow the config
                 remove_tmux
                 log info "Unstowing: $pkg_name"
@@ -792,21 +651,49 @@ cleanup_system() {
 # COMMANDS
 #=============================================================================
 
+setup_claude_code() {
+    log step "Setting up Claude Code"
+
+    if [[ -x "$HOME/.local/bin/claude" ]]; then
+        log info "Claude Code is already installed"
+        return 0
+    fi
+    # Native installer: lands in ~/.local/bin and auto-updates
+    curl -fsSL https://claude.ai/install.sh | bash
+}
+
+setup_neovim_plugins() {
+    log step "Installing Neovim plugins"
+    # Language servers are installed by Mason the first time a file is opened
+    nvim --headless "+Lazy! sync" +qa || log warn "Neovim plugin sync failed, run :Lazy sync manually"
+}
+
+apply_macos_defaults() {
+    [[ "$OS" == "macos" ]] || return 0
+    log step "Applying macOS defaults"
+    bash "$SCRIPT_DIR/os/macos/defaults/macos.defaults.sh"
+}
+
 cmd_install() {
     banner "Installing Development Environment"
 
     detect_system
+    keep_sudo_alive
     setup_xdg
     install_package_manager
-    install_packages
-    setup_rust
-    setup_go
-    setup_uv
-    setup_nvm
+    run_step install_packages
+    # Dotfiles go before the language installers so nothing else claims ~/.zshrc
     install_dotfiles
+    run_step setup_rust
+    run_step setup_go
+    run_step setup_uv
+    run_step setup_nvm
+    run_step setup_claude_code
+    run_step setup_neovim_plugins
+    run_step apply_macos_defaults
 
     log success "Installation completed!"
-    log info "Restart your shell: exec \$SHELL"
+    log info "Restart your Mac so every macOS setting takes effect"
 }
 
 cmd_remove() {
@@ -867,6 +754,8 @@ main() {
             ;;
     esac
 }
+
+bootstrap "$@"
 
 # Ensure we're in the script directory
 cd "$SCRIPT_DIR"

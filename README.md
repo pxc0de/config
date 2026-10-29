@@ -1,20 +1,14 @@
 ## Quick Start
 
-1. Clone this repository:
-   ```bash
-   git clone <repository-url>
-   cd config
-   ```
+On a fresh Mac, one command does everything (Homebrew, Xcode CLI tools, clone into `~/config`, packages, apps, dotfiles, languages, Neovim plugins, macOS defaults):
 
-2. Run the setup script:
-   ```bash
-   ./setup.sh install
-   ```
+```bash
+curl -fsSL https://raw.githubusercontent.com/pxc0de/config/main/setup.sh | bash
+```
 
-3. Restart your shell:
-   ```bash
-   exec $SHELL
-   ```
+You'll be asked for your password once. Restart the Mac when it finishes.
+
+If the repo is already cloned, run `./setup.sh install` instead.
 
 ## Usage
 
@@ -48,8 +42,7 @@ Display usage information:
 
 ## macOS System Customization
 
-For macOS users, additional system preferences can be applied using the defaults script, 
-this is NOT called by `setup.sh` and requires explicit run:
+`./setup.sh install` applies these macOS system preferences automatically. To re-apply them on their own:
 
 ```bash
 ./os/macos/defaults/macos.defaults.sh

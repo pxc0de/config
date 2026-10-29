@@ -5,8 +5,13 @@ brew "tmux"
 brew "fzf"
 brew "tree"
 brew "go"
+brew "gh"
 
 cask "font-jetbrains-mono-nerd-font"
 
 cask "ghostty"
 cask "google-chrome"
+cask "claude"
+cask "notion"
+cask "whatsapp"
+cask "nordvpn"
