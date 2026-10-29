@@ -38,14 +38,3 @@ autocmd("FileChangedShellPost", {
     vim.notify("File reloaded from disk", vim.log.levels.INFO)
   end,
 })
-
--- Python: show a vertical ruler at the line-length limit to keep code PEP 8 friendly
-augroup("python_ruler", { clear = true })
-autocmd("FileType", {
-  group = "python_ruler",
-  pattern = "python",
-  callback = function()
-    vim.opt_local.colorcolumn = "88" -- Black's default; use "79" for strict PEP 8
-    vim.opt_local.textwidth = 88     -- wrap/format target matches the ruler
-  end,
-})

@@ -46,5 +46,6 @@
   "cursor.cpp.disabledLanguages": [
     "plaintext"
   ],
-  "explorer.confirmDelete": false
+  "explorer.confirmDelete": false,
+  "window.autoDetectColorScheme": true
 }

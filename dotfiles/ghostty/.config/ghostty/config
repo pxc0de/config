@@ -28,10 +28,12 @@ selection-foreground = #1e1e2e
 
 # Typography
 font-family = JetBrains Mono Nerd Font
-font-size = 14
+font-size = 15
 font-feature = "+liga"
 font-feature = "+calt"
 adjust-cell-height = 20%
+bold-is-bright = true
+minimum-contrast = 1.1
 
 # Cursor
 cursor-style = bar
@@ -50,3 +52,15 @@ clipboard-read = allow
 clipboard-write = allow
 copy-on-select = false
 mouse-hide-while-typing = true
+mouse-scroll-multiplier = 3
+
+# Scrollback — large buffer for long Claude Code responses
+scrollback-limit = 100000
+
+# Keybindings — fast navigation through long output
+keybind = shift+page_up=scroll_page_up
+keybind = shift+page_down=scroll_page_down
+keybind = super+shift+k=scroll_page_up
+keybind = super+shift+j=scroll_page_down
+keybind = super+shift+u=scroll_to_top
+keybind = super+shift+d=scroll_to_bottom
