@@ -18,44 +18,27 @@ return {
         "mason-org/mason-lspconfig.nvim",
         event = { "BufReadPre", "BufNewFile" },
         dependencies = { "mason-org/mason.nvim" },
-        config = function()
-            require("mason-lspconfig").setup({
-                ensure_installed = {
-                    -- Web
-                    "ts_ls",
-                    "html",
-                    "cssls",
-                    "tailwindcss",
-                    "eslint",
-                    -- Python
-                    "pyright",
-                    "ruff",
-                    -- Rust
-                    "rust_analyzer",
-                    -- Go
-                    "gopls",
-                    -- C/C++
-                    "clangd",
-                    -- Lua
-                    "lua_ls",
-                },
-                automatic_installation = true,
-            })
-
-            -- Enable LSP servers using native Neovim 0.11 API
-            vim.lsp.enable({
+        -- Installs these servers and runs vim.lsp.enable() for every installed one
+        opts = {
+            ensure_installed = {
+                -- Web
                 "ts_ls",
                 "html",
                 "cssls",
                 "tailwindcss",
                 "eslint",
+                -- Python
                 "pyright",
                 "ruff",
+                -- Rust
                 "rust_analyzer",
+                -- Go
                 "gopls",
+                -- C/C++
                 "clangd",
+                -- Lua
                 "lua_ls",
-            })
-        end,
+            },
+        },
     },
 }

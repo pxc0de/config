@@ -1,13 +1,11 @@
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 -- General
 vim.opt.number = true                  -- show absolute line numbers
-vim.opt.relativenumber = false         -- keep relative numbers off by default
 vim.opt.mouse = "a"                    -- enable mouse support everywhere
 vim.opt.clipboard = "unnamedplus"      -- sync with system clipboard
-vim.opt.autoread = true                -- auto-reload files changed externally
-vim.opt.errorbells = false             -- disable audible error bells
-vim.opt.visualbell = false             -- disable visual error flash
 vim.opt.iskeyword:append("-")          -- Treat dash as part of a word
-vim.opt.backspace = "indent,eol,start" -- Normal backspace behavior
 
 -- Persistent undo
 vim.opt.undofile = true -- persist undo history to disk
@@ -42,14 +40,11 @@ vim.opt.smoothscroll = true -- enable smooth scrolling
 vim.opt.updatetime = 100 -- faster CursorHold and swap updates
 vim.opt.timeoutlen = 300 -- shorter mapped sequence timeout
 
-
 -- Show whitespace characters
 vim.opt.list = true
 vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
 -- File handling
-vim.opt.fileencoding = "utf-8" -- use UTF-8 for files
-vim.opt.backup = false         -- skip creating backup files
 vim.opt.swapfile = false       -- disable swap files
 
 -- Splits
@@ -57,10 +52,8 @@ vim.opt.splitright = true -- vertical splits open to the right
 vim.opt.splitbelow = true -- horizontal splits open below
 
 -- Command mode
-vim.opt.wildmenu = true                -- Enable command-line completion menu
 vim.opt.wildignorecase = true          -- Case-insensitive tab completion in commands
 vim.opt.wildmode = "longest:full,full" -- completion behavior in cmdline
-vim.opt.cmdheight = 1                  -- minimal command-line height
 vim.opt.inccommand = "split"           -- preview substitute results in split
 
 -- Completion
@@ -72,7 +65,6 @@ vim.opt.laststatus = 3   -- global statusline
 vim.opt.showmode = false -- hide -- INSERT -- since statusline shows it
 
 -- Text handling
-vim.opt.joinspaces = false                      -- single space after sentences when joining
 vim.opt.formatoptions:remove({ "c", "r", "o" }) -- avoid auto-comment on new lines
 
 -- Folding

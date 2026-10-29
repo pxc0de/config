@@ -20,7 +20,6 @@ inoremap <C-j> <Esc>:m +1<CR>gi
 inoremap <C-k> <Esc>:m -2<CR>gi
 " system clipboard
 vmap <leader>y "+y
-vmap <leader>d "+d
 nmap <leader>y "+yy
 nmap <leader>p "+p
 nmap <leader>P "+P

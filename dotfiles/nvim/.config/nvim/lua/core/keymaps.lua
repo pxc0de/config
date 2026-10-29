@@ -1,6 +1,3 @@
-local keymap = vim.keymap.set
-local opts = { noremap = true, silent = true }
-
 -- Escape
 vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
