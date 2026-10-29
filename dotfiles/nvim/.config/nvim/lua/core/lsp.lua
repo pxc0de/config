@@ -29,24 +29,25 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local opts = { buffer = ev.buf, silent = true }
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-        -- Format Python on save using ruff only (pyright never formats).
-        -- Also runs ruff's import sorting (source.organizeImports) first.
+        -- Python: sort imports, then format, with ruff only (pyright never formats).
+        -- Requested synchronously so both edits land before the write.
         if client and client.name == "ruff" then
             vim.api.nvim_create_autocmd("BufWritePre", {
                 group = vim.api.nvim_create_augroup("RuffFormatOnSave_" .. ev.buf, { clear = true }),
                 buffer = ev.buf,
                 callback = function()
-                    -- Sort imports (synchronous, ruff only)
-                    vim.lsp.buf.code_action({
-                        context = { only = { "source.organizeImports" }, diagnostics = {} },
-                        apply = true,
-                        filter = function(c) return c.name == "ruff" end,
-                    })
-                    -- Format the buffer (ruff only)
-                    vim.lsp.buf.format({
-                        bufnr = ev.buf,
-                        filter = function(c) return c.name == "ruff" end,
-                    })
+                    local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
+                    params.context = { only = { "source.organizeImports.ruff" }, diagnostics = {} }
+                    local res = client:request_sync("textDocument/codeAction", params, 1000, ev.buf)
+                    for _, action in ipairs(res and res.result or {}) do
+                        -- ruff only computes the edit on resolve
+                        local resolved = client:request_sync("codeAction/resolve", action, 1000, ev.buf)
+                        action = resolved and resolved.result or action
+                        if action.edit then
+                            vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+                        end
+                    end
+                    vim.lsp.buf.format({ bufnr = ev.buf, id = client.id })
                 end,
             })
         end

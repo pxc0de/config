@@ -26,7 +26,6 @@ return {
                 "html",
                 "cssls",
                 "tailwindcss",
-                "eslint",
                 -- Python
                 "pyright",
                 "ruff",
