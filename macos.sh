@@ -11,7 +11,7 @@ defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write com.apple.finder ShowPathbar -bool true
 
 #=============================================================================
-# DOCK SETTINGS  
+# DOCK SETTINGS
 #=============================================================================
 
 # Auto-hide the Dock to save screen space
@@ -72,9 +72,6 @@ defaults write NSGlobalDomain AppleScrollerPagingBehavior -bool true
 
 # Set highlight color to green (RGB: 0.65, 0.85, 0.58) - customize as needed
 defaults write NSGlobalDomain AppleHighlightColor -string "0.650980 0.850980 0.580392"
-
-# Light font smoothing for better text clarity on external monitors
-defaults write NSGlobalDomain AppleFontSmoothing -int 1
 
 # Font anti-aliasing threshold - improves text rendering for small fonts
 defaults write NSGlobalDomain AppleAntiAliasingThreshold -int 1
@@ -226,14 +223,10 @@ echo "Restarting affected applications..."
 # Restart Finder to apply changes
 killall "Finder" > /dev/null 2>&1
 
-# Restart Dock to apply changes  
+# Restart Dock to apply changes
 killall "Dock" > /dev/null 2>&1
 
 # Restart SystemUIServer to apply menu bar changes
 killall "SystemUIServer" > /dev/null 2>&1
 
 echo "macOS customization complete! Some changes may require a logout/restart to take effect."
-
-
-
-

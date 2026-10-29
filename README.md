@@ -1,50 +1,35 @@
-## Quick Start
+# config
 
-On a fresh Mac, one command does everything (Homebrew, Xcode CLI tools, clone into `~/config`, packages, apps, dotfiles, languages, Neovim plugins, macOS defaults):
+My macOS setup: packages, apps, dotfiles, language toolchains and system defaults.
+
+## Fresh Mac
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/pxc0de/config/main/setup.sh | bash
 ```
 
-You'll be asked for your password once. Restart the Mac when it finishes.
+This installs Homebrew and the Xcode Command Line Tools, clones the repo into `~/config`, and runs `./setup.sh install`. You're asked for your password once. Restart when it finishes.
 
-If the repo is already cloned, run `./setup.sh install` instead.
-
-## Usage
+## Commands
 
 | Command | What it does |
 |---|---|
-| `./setup.sh install` | Full setup. Safe to re-run; never upgrades anything already installed. |
-| `./setup.sh sync` | Installs only what's new in the Brewfile and re-links dotfiles. No upgrades, no surprises. |
-| `./setup.sh update` | Upgrades **everything**: Homebrew packages and apps, Rust, uv/Python, Node 22, Claude Code, Neovim and tmux plugins. Lists macOS updates without installing them. |
-| `./setup.sh cleanup` | Lists anything installed via Homebrew that isn't in the Brewfile and, after you confirm, uninstalls it. Then prunes caches, unused plugins and dangling dotfile links. |
-| `./setup.sh remove` | Removes everything this repo installed. |
+| `./setup.sh install` | Sets up everything. Safe to re-run. Never upgrades anything already installed. |
+| `./setup.sh sync` | Installs what's new in the `Brewfile`, re-links dotfiles, installs new tmux plugins. |
+| `./setup.sh update` | Upgrades Homebrew packages and apps, Rust, uv and Python, Node 22, Claude Code, and Neovim and tmux plugins. Lists macOS updates without installing them. |
+| `./setup.sh cleanup` | Lists Homebrew packages that aren't in the `Brewfile` and uninstalls them once you confirm. Then prunes caches, unused plugins and dangling dotfile links. |
 
-Typical flow: add a line to the Brewfile → `./setup.sh sync`. Once a month → `./setup.sh update`, then commit `lazy-lock.json` if Neovim plugins changed.
+To add a tool, add a line to the `Brewfile` and run `./setup.sh sync`. Once a month, run `./setup.sh update` and commit `lazy-lock.json` if Neovim plugins changed.
 
-## macOS System Customization
+## Layout
 
-`./setup.sh install` applies these macOS system preferences automatically. To re-apply them on their own:
+| Path | Purpose |
+|---|---|
+| `setup.sh` | The commands above. |
+| `Brewfile` | Every Homebrew formula and app. |
+| `macos.sh` | System preferences. `install` runs it, and you can re-run it alone. Some settings need a restart. |
+| `dotfiles/` | One [GNU Stow](https://www.gnu.org/software/stow/) package per program. Each mirrors `$HOME` and gets symlinked into it. |
 
-```bash
-./os/macos/defaults/macos.defaults.sh
-```
+To add a program's config, create `dotfiles/<program>/` with the same paths it has under `$HOME` (for example `dotfiles/myapp/.config/myapp/config.yml`), then run `./setup.sh sync`.
 
-**Note:** Some settings require a logout or restart to take effect. 
-
-
-## Customization
-
-### Adding New Dotfiles
-
-1. Create a new directory in `dotfiles/` for your application
-2. Structure it to mirror your home directory
-3. Run `./setup.sh install` to symlink the new configuration
-
-Example for adding a new config:
-```
-dotfiles/myapp/
-└── .config/
-    └── myapp/
-        └── config.yml
-```
+Machine-local shell settings such as private aliases and SSH hosts go in `~/.zshrc.local`, which stays out of the repo.
