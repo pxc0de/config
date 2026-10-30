@@ -20,8 +20,8 @@ defaults write com.apple.dock autohide -bool true
 # Set Dock icon size to 48 pixels (medium size)
 defaults write com.apple.dock tilesize -int 48
 
-# Position Dock on the right side of screen (more vertical space for code)
-defaults write com.apple.dock orientation -string "right"
+# Position Dock at the bottom of the screen
+defaults write com.apple.dock orientation -string "bottom"
 
 # Disable Dock magnification effect when hovering
 defaults write com.apple.dock magnification -bool false
@@ -40,6 +40,10 @@ defaults write com.apple.dock show-recents -bool false
 
 # Show indicators for open applications (small dots under icons)
 defaults write com.apple.dock show-process-indicators -bool true
+
+# Remove all pinned apps and folders - leaves only Finder and Trash, which can't be removed
+defaults write com.apple.dock persistent-apps -array
+defaults write com.apple.dock persistent-others -array
 
 #=============================================================================
 # KEYBOARD & INPUT SETTINGS
@@ -203,16 +207,6 @@ defaults write com.apple.ActivityMonitor IconType -int 5
 # Show all processes in Activity Monitor
 defaults write com.apple.ActivityMonitor ShowCategory -int 0
 
-
-#=============================================================================
-# SAFARI SETTINGS
-#=============================================================================
-
-# Enable ⌃Tab / ⌃⇧Tab to cycle through tabs
-defaults write com.apple.Safari UseTabShortcuts -bool true
-
-# Use separate (traditional) tab layout - tab bar below address bar
-defaults write com.apple.Safari TabLayout -int 0
 
 #=============================================================================
 # RESTART REQUIRED SERVICES
